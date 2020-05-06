@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+      "noImplicitAny": true,
+      "removeComments": true,
+      "preserveConstEnums": true,
+      "outFile": "../build/script.js",
+      "sourceMap": true,
+      "target": "ES6",
+      "allowJs": true
+    },
+
+    "files": [
+      "flow.js",
+      "events.ts",
+      "websocket.ts",
+      "datamanager.ts",
+      "ui.ts",
+      "application.ts",
+      "main.ts"
+    ]
+    }
