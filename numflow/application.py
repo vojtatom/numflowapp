@@ -20,7 +20,7 @@ from .exception import NumflowException
 
 class Application:
     def __init__(self):
-        self.dataset = None
+        self.datasets = {}
         self.commands = {
             'open': self.open
         }
@@ -48,14 +48,24 @@ class Application:
     def open(self, data):
         #try opening the new dataset
         filename = data['filename']
-        self.dataset = load(filename, mode='c')
+
+
+        def response(dataset, filename):
+            return {'status': 'okay',
+                    'action': 'dataset_loaded',
+                    'message': 'Dataset loaded',
+                    'file': filename,
+                    'res': dataset.res,
+                    'mode': dataset.type }
+
+
+        if filename in self.datasets:
+            return response(self.datasets[filename], filename)
+
+        self.datasets[filename] = load(filename, mode='c')
 
         printOK('loaded')
-        data = sample_rectilinear_dataset(self.dataset, 16, 16, 16)
-
+        #data = sample_rectilinear_dataset(self.dataset, 16, 16, 16)
         
-        return {'status': 'okay',
-                'action': 'dataset_loaded',
-                'message': 'Dataset loaded'}
-
+        return response(self.datasets[filename], filename)
     

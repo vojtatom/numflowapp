@@ -14,7 +14,11 @@
       "events.ts",
       "websocket.ts",
       "datamanager.ts",
+      "graphics.ts",
+      "nodes.ts",
+      "nodesUI.ts",
       "ui.ts",
+      "splash.ts",
       "application.ts",
       "main.ts"
     ]

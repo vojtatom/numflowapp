@@ -8,6 +8,7 @@ class RectilinearDataset:
     def __init__(self, axis, data):
         self.axis = axis
         self.data = data
+        self.res = [len(axis[0]), len(axis[1]), len(axis[2])]
         self.type = "c"
     
 
@@ -37,6 +38,7 @@ class ScipyRectilinearDataset:
         self.interpolator = RegularGridInterpolator(axis, data, bounds_error=False, fill_value=[0, 0, 0])
         self.axis = axis
         self.data = data
+        self.res = [len(axis[0]), len(axis[1]), len(axis[2])]
         self.type = "scipy"
 
     def __call__(self, points):

@@ -4,6 +4,9 @@ body {
     color: #ffffff;
     margin: 0;
     padding: 0;
+
+    width: 100vw;
+    height: 100vh;
 }
 
 
@@ -105,5 +108,84 @@ body {
 
 .error-option:hover {
     background: #222;
+    cursor: pointer;
+}
+
+
+/* nodes */
+
+#main {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+}
+
+#sidebar {
+    max-width: 20rem;
+    display: flex;
+    flex-direction: column;
+    background: #555;
+}
+
+.node {
+    background: #666;
+    padding: 1rem;
+    border-radius: 0.2rem;
+    margin: 0.25rem 0.5rem;
+}
+
+.node:hover {
+    background: #777;
+    cursor: pointer;
+}
+
+
+
+.node_title {
+    font-weight: bold;
+}
+
+.node_meta {
+    color: #CCC;
+    
+}
+
+
+/* context menu */
+
+#wall {
+    position: absolute;
+    width:  100vw;
+    height:  100vh;
+    top: 0;
+    left: 0;
+}
+
+#context-menu {
+    background: #222;
+    border-radius: 0.2rem;
+}
+
+.menu-option {
+    font-size: 0.9em;
+    padding: 0.5em 2em;
+}
+
+.menu-option:hover {
+    background: #226688;
+    cursor: pointer;
+}
+
+
+.tools-icon {
+    background: #333;
+    padding: 0.5rem 1rem;
+    border-radius: 0.2rem;
+    margin: 0.25rem 0.5rem;
+}
+
+.tools-icon:hover {
+    background: #226688;
     cursor: pointer;
 }

@@ -30,7 +30,7 @@ def load(filename, separator=",", points_clustering_tolerance=0.0001, mode="scip
         scipy.interpolator.RegularGridInterpolator -- default interpolator
     """
 
-    time.sleep(3)
+    #time.sleep(3)
     
     if mode not in ["scipy", "c", "both"]:
        raise NumflowException("Unknown mode: {}".format(mode)) 

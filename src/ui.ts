@@ -10,6 +10,7 @@ module UIModule {
         html?: string;
         class?: string | Array<string>;
         child?: Element | Array<Element>;
+        onclick?: (e: MouseEvent) => void;
     }
 
     interface ImgInterface {
@@ -19,7 +20,7 @@ module UIModule {
         class?: string | Array<string>;
     }
 
-    function div(options?: DivInterface) {
+    export function div(options?: DivInterface) {
         let e = document.createElement("div");
 
         if (!options)
@@ -46,10 +47,15 @@ module UIModule {
             else
                 e.appendChild(options.child);
         }
+
+        if (options.onclick) {
+            e.onclick = options.onclick;
+        }
+
         return e;
     }
 
-    function img(options: ImgInterface) {
+    export function img(options: ImgInterface) {
         let e = document.createElement("img");
 
         e.src = options.src;
@@ -70,118 +76,26 @@ module UIModule {
 
     const { dialog } = require('electron').remote;
 
-    class SplashScreen {
-        div: Element;
-        bottom: Element;
-        app: AppModule.Application;
 
-        constructor(app: AppModule.Application) {
-            this.app = app;
-        }
+    function open_dataset(app: AppModule.Application){
+        dialog.showOpenDialog({
+            properties: ['openFile']
+        }).then((result: any) => {
+            if (!result.canceled) {
+                let file = result.filePaths[0]
 
-        loadingBottom(fileName: string)
-        {
-            return div({
-                id: "splash-loading",
-                html: "loading",
-                child: div({
-                    id: "splash-loading-filename",
-                    html: fileName
-                })
-            });
-        }
+                //todo some fancy loading stuff
 
-        selectMenu()
-        {
-            let open_dataset = div({
-                id: "splash-open",
-                class: "splash-option",
-                child: [
-                    img({
-                        src: "assets/file.svg",
-                        alt: "",
-                        class: "icon"
-                    }),
-                    div({
-                        html: "open dataset",
-                        class: "option"
-                    }),
-                ]
-            });
+                app.load_file(file);
+            }
+        }).catch((err: any) => {
+            console.log(err);
+        })
+    }
 
-            open_dataset.onclick = () => {
-                dialog.showOpenDialog({
-                    properties: ['openFile']
-                }).then((result: any) => {
-                    if (!result.canceled) {
-                        //file selected okay
-                        let file = result.filePaths[0]
-                        this.bottom.innerHTML = "";
-                        this.bottom.appendChild(this.loadingBottom(file));
-                        this.app.load_file(file);
-                    }
-                }).catch((err: any) => {
-                    console.log(err);
-                })
-            };
-
-            let open_visualization = div({
-                id: "splash-open",
-                class: "splash-option",
-                child: [
-                    img({
-                        src: "assets/3d.svg",
-                        alt: "",
-                        class: "icon"
-                    }),
-                    div({
-                        html: "open visualization",
-                        class: "option"
-                    }),
-                ]
-            });
-
-            return div({
-                child: [
-                    div({
-                        id: "splash-title",
-                        child: [
-                            div({
-                                class: "title",
-                                html: "numflow"
-                            }),
-                            div({
-                                class: "description",
-                                html: "vector field visualization app"
-                            })
-                        ]
-                    }),
-                    open_dataset,
-                    open_visualization
-                ]
-            });
-        }
-
-        get html() {
-            let canvasDiv = div({
-                id: "splash-animation"
-            });
-
-            this.bottom = this.selectMenu();
-
-            this.div = div({
-                id: "splash-screen",
-                child: [
-                    canvasDiv,
-                    this.bottom
-                ]
-            });
-
-            createLoadScreen(canvasDiv);
-
-            return this.div;
-        }
-
+    interface MenuOption{
+        title: string;
+        call: () => void;
     }
 
     interface ErrorOption{
@@ -190,31 +104,82 @@ module UIModule {
     }
 
 
-
     export class UI {
         status: string;
         app: AppModule.Application;
-        body: Element;
+        body: HTMLElement;
+        
+        sideBar: HTMLElement;
+        tools: HTMLElement;
+        canvas: HTMLElement;
+        main: Element;
+
+        nodes: { [key: string] : NodesUIModule.NodeElement };
 
         constructor(app: AppModule.Application) {
             this.status = 'loading';
-            this.app = app
+            this.app = app;
+            this.nodes = {};
         }
 
         setup_viewer() {
+            //init view only if the project is new
+            if (this.status === 'viewer')
+                return;
+
             this.clear();
             this.status = 'viewer';
 
+            this.sideBar = div({
+                id: 'sidebar'
+            });
 
+            this.tools = div({
+                id: 'tools',
+                child: [
+                    div({
+                        class: 'tools-icon',
+                        html: 'add node',
+                        onclick: (e) => {
+                            console.log(e.srcElement);
+
+                            let rect = (e.srcElement as HTMLElement).getBoundingClientRect();
+
+                            this.context_menu(e, [
+                                {
+                                    title: 'dataset',
+                                    call: () => {
+                                        open_dataset(this.app);
+                                    }
+                                }
+                            ], rect.right + 5, rect.top); 
+                        }
+                    })
+                ]
+            });
+
+            this.canvas = document.createElement('canvas');
+            this.canvas.id = '3d';
+
+            this.main = div({
+                id: 'main'
+            });
+
+            this.body.appendChild(this.main);
+            this.main.appendChild(this.sideBar);
+            this.main.appendChild(this.tools);
+            this.main.appendChild(this.canvas);
+
+            this.body.onresize = this.resize;
         }
 
-        setup_load() {
+        setup_splash() {
             this.body = document.getElementsByTagName("body")[0];
             this.body.innerHTML = '';
             let dropArea = document.createElement("div");
             dropArea.id = "loading-drop-area";
 
-            let splash = new SplashScreen(this.app);
+            let splash = new SplashModule.SplashScreen(this.app);
             let splash_html = splash.html;
 
             dropArea.ondragover = (e) => {
@@ -255,46 +220,7 @@ module UIModule {
         }
 
         error(message: string, options?: Array<ErrorOption>) {
-            //update according to status
-            switch((this.status as string)){
-                case "loading":
-                    this.clear();
-                    options = [
-                        {
-                            title: "Back",
-                            call: () => {
-                                this.setup_load();
-                            }
-                        }
-                    ]
-                    break;
-            }
 
-            let optionsElem = div({
-                id: "error-options"
-            });
-
-            //error options
-            if (options)
-            {
-                for (let o of options)
-                {
-                    let option = div({
-                        class: "error-option",
-                        html: o.title
-                    });
-                    option.onclick = o.call;
-                    optionsElem.appendChild(option);
-                }
-            }
-
-            //close option on error
-            let closeOption = div({
-                class: "error-option",
-                html: "Dismiss"
-            });
-            optionsElem.appendChild(closeOption);
-            
             let error = div({
                 id: "error",
                 child: [
@@ -306,15 +232,163 @@ module UIModule {
                         id: "error-message",
                         html: message
                     }),
-                    optionsElem
                 ]
             })
-            
-            closeOption.onclick = () => {this.body.removeChild(error)};    
+
+            //update options according to status
+            switch((this.status as string)){
+                case "loading":
+                    this.clear();
+                    options = [
+                        {
+                            title: "Back to Splash",
+                            call: () => {
+                                this.setup_splash();
+                            }
+                        },
+                        {
+                            title: "Dismiss",
+                            call: () => {
+                                this.setup_viewer();
+                            }
+                        }
+                    ]
+                    break;
+                default:
+                    if (options)
+                        options.push({
+                            title: 'Dismiss',
+                            call: () => {}
+                        })
+                    else 
+                       options = [{
+                                    title: 'Dismiss',
+                                    call: () => { }
+                                   }];
+            }
+
+
+            let optionsElem = div({
+                id: "error-options"
+            });
+
+
+            for (let o of options)
+            {
+                let option = div({
+                    class: "error-option",
+                    html: o.title
+                });
+
+                option.onclick = () => {
+                    this.body.removeChild(error);
+                    o.call();
+                }
+
+                optionsElem.appendChild(option);
                 
+            }
+
+            error.appendChild(optionsElem);       
             this.body.appendChild(error);
         }
+
+
+        register_node(node: NodesUIModule.NodeElement){
+            this.nodes[node.id] = node;
+            this.sideBar.appendChild(node.html);
+
+            node.html.onmousedown = (e) => {
+                if (e.button == 2)
+                    this.context_menu(e, node.context_options);
+            }
+        }
+
+        unregister_node(nodeID: string){
+            if (nodeID in this.nodes)
+            {
+                let elem = document.getElementById(nodeID);
+                this.sideBar.removeChild(elem);
+                delete this.nodes[nodeID];
+            }
+        }
+
+
+        context_menu(e: MouseEvent, options: Array<MenuOption>, x?: number, y?: number)
+        {
+            let wall = div({
+                id: 'wall'
+            });
+
+            let menu = div({
+                id: 'context-menu'
+            });
+
+            
+            for(let option of options)
+            {
+                let html = div({
+                    class: 'menu-option',
+                    html: option.title
+                });
+                
+                html.onclick = () => {
+                    option.call();
+                    this.body.removeChild(wall);
+                    this.body.removeChild(menu);
+                }
+                
+                menu.appendChild(html);
+            }
+            
+            menu.style.visibility = 'hidden';
+            menu.style.position = 'absolute';
+            
+            this.body.appendChild(wall);
+            this.body.appendChild(menu);
+            
+            //dimensions
+            let width = menu.offsetWidth;
+            let bw = this.body.offsetWidth;
+            let height = menu.offsetHeight;
+            let bh = this.body.offsetHeight;
+
+            //positions
+            let posx = x ? x : e.x;
+            let posy = y ? y : e.y;
+            if (e.x + width > bw)
+                posx -= width;
+
+            if (e.y + height > bh)
+                posy -= height;
+
+
+            menu.style.left = posx + 'px';
+            menu.style.top = posy + 'px';
+            menu.style.visibility = 'visible';
+
+            wall.onmousedown = () => {
+                this.body.removeChild(menu);
+                this.body.removeChild(wall);
+            }
+
+            console.log(width, height);
+            //menu.style.top = this.body.style.width
+        }
+        
+        resize = () => {
+            let menu = document.getElementById("context-menu");
+            let wall = document.getElementById("wall");
+
+            if (menu) {
+                this.body.removeChild(wall);
+                this.body.removeChild(menu);
+            }
+        }
     }
+
+
+
 }
 
 

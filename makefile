@@ -30,3 +30,8 @@ clean:
     	find . -type f -name '*.c' -exec rm {} +;\
     	find . -type f -name '*.cpp' -not -path "*cnumflow/cpp*" -exec rm {} +;\
 	)
+
+start: js
+	@-( \
+		npm start; \
+	)
