@@ -11,11 +11,22 @@ module UIModule {
         class?: string | Array<string>;
         child?: Element | Array<Element>;
         onclick?: (e: MouseEvent) => void;
+        onmouseenter?: (e: MouseEvent) => void;
+        onmouseleave?: (e: MouseEvent) => void;
     }
 
     interface ImgInterface {
         src: string;
         alt: string;
+        id?: string;
+        class?: string | Array<string>;
+    }
+
+
+    interface SelectInterface {
+        values: Array<string | number>;
+        default: string | number;
+        onchange: (e: Event) => void;
         id?: string;
         class?: string | Array<string>;
     }
@@ -52,8 +63,41 @@ module UIModule {
             e.onclick = options.onclick;
         }
 
+        if (options.onmouseenter && options.onmouseleave)
+        {
+            e.onmouseenter = options.onmouseenter;
+            e.onmouseleave = options.onmouseleave;
+
+        }
+
         return e;
     }
+
+    export function select(options: SelectInterface)
+    {   
+        let e = document.createElement("select");
+
+        for(let o of options.values)
+        {
+            let v = document.createElement("option");
+            v.value = o.toString();
+            v.innerHTML = o.toString();
+
+            e.appendChild(v);
+        }
+
+        if (options.class) {
+            if (Array.isArray(options.class))
+                for (let c of options.class)
+                    e.classList.add(c);
+            else
+                e.classList.add(options.class);
+        }
+
+        e.onchange = options.onchange;
+
+        return e;
+    }   
 
     export function img(options: ImgInterface) {
         let e = document.createElement("img");
@@ -110,11 +154,13 @@ module UIModule {
         body: HTMLElement;
         
         sideBar: HTMLElement;
+        detail: HTMLElement;
         tools: HTMLElement;
         canvas: HTMLElement;
         main: Element;
 
         nodes: { [key: string] : NodesUIModule.NodeElement };
+        detailID: string; 
 
         constructor(app: AppModule.Application) {
             this.status = 'loading';
@@ -165,8 +211,13 @@ module UIModule {
                 id: 'main'
             });
 
+            this.detail = div({
+                id: 'detail'
+            });
+
             this.body.appendChild(this.main);
             this.main.appendChild(this.sideBar);
+            this.main.appendChild(this.detail);
             this.main.appendChild(this.tools);
             this.main.appendChild(this.canvas);
 
@@ -302,6 +353,10 @@ module UIModule {
                 if (e.button == 2)
                     this.context_menu(e, node.context_options);
             }
+
+            node.html.onclick = (e) => {
+                this.node_detail(node);
+            }
         }
 
         unregister_node(nodeID: string){
@@ -311,6 +366,19 @@ module UIModule {
                 this.sideBar.removeChild(elem);
                 delete this.nodes[nodeID];
             }
+
+            if (nodeID == this.detailID)
+                this.detail.innerHTML = '';
+            else 
+                this.node_detail(this.nodes[this.detailID])
+        }
+
+        node_detail(node: NodesUIModule.NodeElement) {
+            console.log('detail', node.id);
+
+            this.detail.innerHTML = '';
+            this.detail.appendChild(node.detail);
+            this.detailID = node.id;
         }
 
 
@@ -375,8 +443,8 @@ module UIModule {
             console.log(width, height);
             //menu.style.top = this.body.style.width
         }
-        
-        resize = () => {
+
+        close_context_menu() {
             let menu = document.getElementById("context-menu");
             let wall = document.getElementById("wall");
 
@@ -384,6 +452,10 @@ module UIModule {
                 this.body.removeChild(wall);
                 this.body.removeChild(menu);
             }
+        }
+        
+        resize = () => {
+            this.close_context_menu();
         }
     }
 

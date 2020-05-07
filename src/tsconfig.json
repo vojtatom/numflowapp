@@ -16,10 +16,10 @@
       "datamanager.ts",
       "graphics.ts",
       "nodes.ts",
-      "nodesUI.ts",
       "ui.ts",
+      "nodesUI.ts",
       "splash.ts",
       "application.ts",
       "main.ts"
     ]
-    }
+}

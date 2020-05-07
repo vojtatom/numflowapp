@@ -9,6 +9,22 @@ body {
     height: 100vh;
 }
 
+::-webkit-scrollbar
+{
+  width: 12px;  /* for vertical scrollbars */
+  height: 12px; /* for horizontal scrollbars */
+}
+
+::-webkit-scrollbar-track
+{
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb
+{
+  background: rgba(0, 0, 0, 0.5);
+}
+
 
 #splash-screen {
     width: 500px;
@@ -112,7 +128,7 @@ body {
 }
 
 
-/* nodes */
+/* frame */
 
 #main {
     display: flex;
@@ -122,11 +138,15 @@ body {
 }
 
 #sidebar {
-    max-width: 20rem;
+    width: 20rem;
     display: flex;
     flex-direction: column;
     background: #555;
+    overflow-x: auto;
 }
+
+/* node widgets */
+
 
 .node {
     background: #666;
@@ -140,17 +160,69 @@ body {
     cursor: pointer;
 }
 
-
-
-.node_title {
+.node-title {
     font-weight: bold;
 }
 
-.node_meta {
+.node-meta {
     color: #CCC;
     
 }
 
+/* node detail */
+
+.node-detail {
+    background: #222;
+}
+
+.node-attribs {
+    display: flex;
+    flex-direction: column;
+}
+
+.node-attrib {
+    display: flex;
+    flex-direction: row;
+}
+
+.node-attrib-title {
+    width: 7em;
+    padding: 0.5rem;
+}
+
+.node-attrib-value {
+    max-width: 10em;
+    overflow: auto;
+    padding: 0.5rem;
+}
+
+
+select.node-attrib-value{
+    font-size: 1em;
+    color: #FFF;
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background: #222;
+    border: none;
+    border-radius: 0;
+    margin: 0;
+    width: 100%;
+    padding: 0.5em;
+    box-sizing: content-box;
+
+    background-image:
+    linear-gradient(45deg, transparent 50%, gray 50%),
+    linear-gradient(135deg, gray 50%, transparent 50%);
+    background-position:
+    calc(100% - 20px) calc(1em + 2px),
+    calc(100% - 15px) calc(1em + 2px);
+    background-size:
+    5px 5px,
+    5px 5px;
+    background-repeat: no-repeat;
+}
 
 /* context menu */
 
@@ -168,7 +240,6 @@ body {
 }
 
 .menu-option {
-    font-size: 0.9em;
     padding: 0.5em 2em;
 }
 
@@ -177,6 +248,7 @@ body {
     cursor: pointer;
 }
 
+/* tools */
 
 .tools-icon {
     background: #333;
